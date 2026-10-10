@@ -1,0 +1,26 @@
+{
+  "name": "@workspace/trading-monitor",
+  "version": "2.0.9",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0 --port ${PORT:-3000}",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0 --port ${PORT:-3000}",
+    "test": "node --test tests/*.test.js",
+    "test:lifecycle": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "next": "15.5.26",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@resvg/resvg-js": "^2.6.2",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.6",
+    "stripe": "^17.4.0",
+    "uuid": "^11.0.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
