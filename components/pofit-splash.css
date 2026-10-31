@@ -1,0 +1,282 @@
+/* ═══════════════════════════════════════════════════════════
+   POFIT splash / loading screen — 6-step reference sequence
+   SVG + CSS only · transform/opacity animations (60fps friendly)
+
+   Timeline (s):  1 build 0–.3 · 2 complete+glow .3–.7 · 3 text .75–1.2
+                  4 tagline+ring 1.1–1.5 · 5 bar 1.3→ (loops) · 6 check + fade on ready
+
+   Base (un-animated) styles == the finished state, so the reduced-motion
+   view and the exit "ghost" show a complete lockup.
+   ═══════════════════════════════════════════════════════════ */
+
+.pofit-splash {
+  --pf-bg: #040806;
+  --pf-green: #22e27a;
+  --pf-green-soft: rgba(34, 226, 122, 0.14);
+  --pf-w: clamp(250px, 80vw, 420px);          /* lockup width */
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 85% 26% at 50% 104%, rgba(34, 226, 122, 0.2), transparent 72%),
+    radial-gradient(ellipse 60% 40% at 50% 44%, rgba(16, 201, 138, 0.06), transparent 75%),
+    var(--pf-bg);
+  color: #fff;
+  font-family: var(--font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  opacity: 1;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+
+.pofit-splash__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--pf-w);
+}
+
+/* ── lockup (ring + mark + wordmark) ───────────────────── */
+.pofit-splash__lock {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 664 / 200;
+}
+.pofit-splash__lockup {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* step 1 → 3: mark builds in the centre, then slides left */
+.pofit-splash__mark {
+  animation: pofit-mark-shift 0.5s cubic-bezier(0.3, 0.7, 0.2, 1) 0.75s both;
+}
+.pofit-splash__glow {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  opacity: 0.6;
+  animation: pofit-glow 2.2s ease-in-out 0.4s infinite;
+}
+.pofit-fill {
+  transform-box: fill-box;
+  transform-origin: 50% 60%;
+  animation: pofit-fill-in 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.pofit-fill--bowl { animation-delay: 0.22s; }
+.pofit-fill--stem { animation-delay: 0.3s; }
+
+.pofit-stroke {
+  fill: none;
+  stroke: #b4ffd0;
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  opacity: 0;
+  animation: pofit-draw 0.45s cubic-bezier(0.55, 0.1, 0.25, 1) both;
+}
+.pofit-stroke--bowl { animation-delay: 0.02s; }
+.pofit-stroke--stem { animation-delay: 0.1s; }
+
+/* step 3: POFIT — fade + slight scale/slide */
+.pofit-splash__word {
+  transform-origin: 462px 129px;
+  animation: pofit-word-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) 0.82s both;
+}
+
+/* ── ring (steps 1–4, then hands over to the bar) ──────── */
+.pofit-splash__ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 94%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  opacity: 0;                                   /* base = finished = hidden */
+  animation: pofit-ring-life 1.55s ease-out both;
+}
+.pofit-splash__track { fill: none; stroke: var(--pf-green-soft); stroke-width: 0.7; }
+.pofit-splash__spin { transform-origin: 60px 60px; will-change: transform; }
+.pofit-splash__spin--a { animation: pofit-spin 1.3s cubic-bezier(0.45, 0.1, 0.35, 0.9) infinite; }
+.pofit-splash__spin--b { animation: pofit-spin 2.1s linear infinite reverse; }
+.pofit-splash__arc {
+  fill: none;
+  stroke: #2cf08a;
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  stroke-dasharray: 96 256;                     /* r=56 → circumference ≈ 352 */
+}
+.pofit-splash__arc--short { stroke-dasharray: 36 316; opacity: 0.85; }
+.pofit-splash__arc-glow {
+  fill: none;
+  stroke: #22e27a;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-dasharray: 96 256;
+  opacity: 0.16;
+}
+
+/* ── step 4: tagline ───────────────────────────────────── */
+.pofit-splash__tag {
+  margin: calc(var(--pf-w) * 0.07) 0 0;
+  font-size: calc(var(--pf-w) * 0.031);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.34em;
+  padding-left: 0.34em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #9ff7c4;
+  animation: pofit-tag-in 0.4s ease-out 1.1s both;
+}
+.pofit-splash__tag i {
+  font-style: normal;
+  margin: 0 0.5em;
+  color: var(--pf-green);
+}
+
+/* ── step 5: indeterminate bar · step 6: check (same slot) ─ */
+.pofit-splash__slot {
+  position: relative;
+  width: 62%;
+  height: calc(var(--pf-w) * 0.1);
+  margin-top: calc(var(--pf-w) * 0.045);
+  display: grid;
+  place-items: center;
+  animation: pofit-slot-in 0.35s ease-out 1.3s both;
+}
+.pofit-splash__bar {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--pf-green-soft);
+  transition: opacity 0.14s ease-out;
+}
+.pofit-splash__bar > span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #12b85a, #3df08f);
+  box-shadow: 0 0 10px rgba(34, 226, 122, 0.55);
+  will-change: transform;
+  animation: pofit-bar 1.25s cubic-bezier(0.55, 0.05, 0.3, 1) infinite;
+}
+.pofit-splash__check {
+  position: absolute;
+  width: calc(var(--pf-w) * 0.1);
+  height: calc(var(--pf-w) * 0.1);
+  opacity: 0;
+  overflow: visible;
+  fill: none;
+  stroke: var(--pf-green);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(34, 226, 122, 0.5));
+}
+.pofit-splash__check-ring,
+.pofit-splash__check-tick { stroke-dasharray: 1; stroke-dashoffset: 0; }
+
+/* ── step 6: ready → check pops, screen fades to the dashboard ─ */
+.pofit-splash--leaving {
+  pointer-events: none;
+  animation: pofit-out 0.4s ease-out 0.12s forwards;
+}
+.pofit-splash--leaving .pofit-splash__bar { opacity: 0; }
+.pofit-splash--leaving .pofit-splash__slot { animation: none; opacity: 1; }
+.pofit-splash--leaving .pofit-splash__check { animation: pofit-check-pop 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+.pofit-splash--leaving .pofit-splash__check-ring { animation: pofit-stroke-in 0.22s ease-out both; }
+.pofit-splash--leaving .pofit-splash__check-tick { animation: pofit-stroke-in 0.2s ease-out 0.08s both; }
+.pofit-splash--leaving .pofit-splash__stage { transition: transform 0.5s ease-out; transform: scale(1.03); }
+
+/* detached static copy used when the screen is unmounted mid-load */
+.pofit-splash--ghost,
+.pofit-splash--ghost * { animation: none !important; }
+.pofit-splash--ghost { pointer-events: none; animation: pofit-out 0.4s ease-out forwards !important; }
+.pofit-splash--ghost .pofit-splash__bar > span { width: 100%; }
+
+.pofit-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── keyframes ─────────────────────────────────────────── */
+@keyframes pofit-draw {
+  0%   { stroke-dashoffset: 1; opacity: 1; }
+  65%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes pofit-fill-in {
+  0%   { opacity: 0; transform: scale(0.94); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes pofit-mark-shift {
+  from { transform: translateX(250px); }
+  to   { transform: translateX(0); }
+}
+@keyframes pofit-glow {
+  0%, 100% { opacity: 0.4;  transform: scale(0.94); }
+  50%      { opacity: 0.85; transform: scale(1.06); }
+}
+@keyframes pofit-word-in {
+  0%   { opacity: 0; transform: translateX(26px) scale(0.95); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes pofit-ring-life {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  74%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes pofit-spin { to { transform: rotate(360deg); } }
+@keyframes pofit-tag-in {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes pofit-slot-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pofit-bar {
+  0%   { transform: translateX(-105%); }
+  100% { transform: translateX(240%); }
+}
+@keyframes pofit-check-pop {
+  0%   { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes pofit-stroke-in {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes pofit-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes pofit-breathe { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+/* ── reduced motion: static lockup, gentle opacity pulse only ─ */
+@media (prefers-reduced-motion: reduce) {
+  .pofit-splash *,
+  .pofit-splash *::before,
+  .pofit-splash *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .pofit-splash__bar > span { width: 100%; animation: pofit-breathe 1.8s ease-in-out infinite !important; }
+  .pofit-splash--leaving,
+  .pofit-splash--ghost { animation: pofit-out 0.15s linear forwards !important; }
+  .pofit-splash--leaving .pofit-splash__check { opacity: 1; }
+}

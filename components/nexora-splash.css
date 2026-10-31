@@ -1,0 +1,410 @@
+/* ═══════════════════════════════════════════════════════════
+   NEXORA splash / loading screen — 7-stage sequence
+   SVG + CSS only · transform / opacity animations (GPU friendly)
+
+   Timeline (s)
+     1 initial glow ........ 0.00 – 0.30
+     2 light strokes ....... 0.30 – 0.70
+     3 N builds ............ 0.70 – 1.10
+     4 energy sweep ........ 1.10 – 1.50
+     5 name reveal ......... 1.50 – 2.00
+     6 loading line ........ 2.00 → (loops while the app is really loading)
+     7 ready → dashboard ... line completes, logo pulses, screen fades out
+
+   Base (un-animated) styles == the finished lockup, so the reduced-motion view,
+   the "resume" view and the exit ghost all show a complete logo.
+   Every intro element carries `.nx-i` so those modes can switch the intro off.
+   ═══════════════════════════════════════════════════════════ */
+
+.nx {
+  --nx-bg: #020605;
+  --nx-green: #19e57c;
+  --nx-green-hi: #7dffbd;
+  --nx-soft: rgba(25, 229, 124, 0.14);
+  --nx-w: clamp(270px, 80vw, 560px); /* lockup width */
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 30% at 50% 106%, rgba(25, 229, 124, 0.16), transparent 72%),
+    radial-gradient(ellipse 60% 40% at 50% 46%, rgba(16, 201, 120, 0.05), transparent 75%),
+    var(--nx-bg);
+  color: #fff;
+  font-family: var(--font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  opacity: 1;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+
+.nx__stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--nx-w);
+  z-index: 2;
+}
+
+/* ── stage 1: ambient glow ─────────────────────────────── */
+.nx__ambient {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--nx-w) * 1.9);
+  height: calc(var(--nx-w) * 1.9);
+  margin: calc(var(--nx-w) * -0.95) 0 0 calc(var(--nx-w) * -0.95);
+  background: radial-gradient(circle closest-side, rgba(25, 229, 124, 0.2) 0%, rgba(25, 229, 124, 0.1) 30%, rgba(25, 229, 124, 0.035) 60%, transparent 100%);
+  opacity: 0.8;
+  animation: nx-ambient-in 0.5s ease-out both;
+  pointer-events: none;
+}
+.nx__halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--nx-w) * 1.2);
+  height: calc(var(--nx-w) * 0.6);
+  margin: calc(var(--nx-w) * -0.3) 0 0 calc(var(--nx-w) * -0.6);
+  background: radial-gradient(ellipse closest-side, rgba(25, 229, 124, 0.24), rgba(25, 229, 124, 0.08) 55%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── lockup box ────────────────────────────────────────── */
+.nx__lock {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1000 / 300;
+}
+.nx__lockup {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ── stage 1 flare · stage 2 strokes (HTML layer) ──────── */
+.nx__fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.nx__flare {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--nx-w) * 0.5);
+  height: 2px;
+  margin: -1px 0 0 calc(var(--nx-w) * -0.25);
+  background: linear-gradient(90deg, transparent, rgba(125, 255, 189, 0.9), transparent);
+  border-radius: 2px;
+  opacity: 0;
+  animation: nx-flare 0.7s ease-out both;
+}
+.nx__flare::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #eafff3;
+  box-shadow: 0 0 18px 6px rgba(25, 229, 124, 0.75);
+}
+
+.nx__stroke {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--nx-w) * 0.46);
+  height: 3px;
+  margin: -1.5px 0 0 calc(var(--nx-w) * -0.23);
+  border-radius: 3px;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.nx__stroke::before,
+.nx__stroke::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  border-radius: 3px;
+}
+/* faint parallel trail streaks */
+.nx__stroke::before {
+  width: 130%;
+  height: 1px;
+  top: -9px;
+  background: linear-gradient(90deg, transparent, rgba(25, 229, 124, 0.45));
+}
+.nx__stroke::after {
+  width: 100%;
+  height: 1px;
+  top: 12px;
+  background: linear-gradient(90deg, transparent, rgba(25, 229, 124, 0.3));
+}
+.nx__stroke--l {
+  background: linear-gradient(90deg, transparent 0%, rgba(25, 229, 124, 0.55) 55%, #b9ffd9 92%, #fff 100%);
+  box-shadow: 0 0 14px 2px rgba(25, 229, 124, 0.45);
+  animation: nx-stroke-l 0.42s cubic-bezier(0.25, 0.7, 0.25, 1) 0.3s both;
+}
+.nx__stroke--r {
+  background: linear-gradient(270deg, transparent 0%, rgba(25, 229, 124, 0.55) 55%, #b9ffd9 92%, #fff 100%);
+  box-shadow: 0 0 14px 2px rgba(25, 229, 124, 0.45);
+  animation: nx-stroke-r 0.42s cubic-bezier(0.25, 0.7, 0.25, 1) 0.3s both;
+}
+.nx__stroke--r::before,
+.nx__stroke--r::after {
+  right: auto;
+  left: 0;
+}
+.nx__stroke--r::before { background: linear-gradient(270deg, transparent, rgba(25, 229, 124, 0.45)); }
+.nx__stroke--r::after { background: linear-gradient(270deg, transparent, rgba(25, 229, 124, 0.3)); }
+
+/* the two strokes meet and hand over to the N */
+.nx__merge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--nx-w) * 0.34);
+  height: calc(var(--nx-w) * 0.34);
+  margin: calc(var(--nx-w) * -0.17) 0 0 calc(var(--nx-w) * -0.17);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200, 255, 225, 0.55), rgba(25, 229, 124, 0.18) 40%, transparent 68%);
+  opacity: 0;
+  animation: nx-merge 0.5s ease-out 0.62s both;
+}
+
+/* ── stages 3–5: the mark ──────────────────────────────── */
+.nx__mark {
+  transform-origin: 112px 149px;
+  animation: nx-mark-settle 0.5s cubic-bezier(0.3, 0.7, 0.2, 1) 1.5s both;
+}
+.nx__markglow {
+  opacity: 0.55;
+  animation: nx-glow 2.4s ease-in-out 1.1s infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+/* stage 3: pieces are revealed by a travelling edge */
+.nx__piece--rib { animation: nx-wipe-x 0.34s cubic-bezier(0.4, 0.1, 0.2, 1) 0.74s both; }
+.nx__piece--l   { animation: nx-wipe-down 0.3s cubic-bezier(0.4, 0.1, 0.2, 1) 0.7s both; }
+.nx__piece--r   { animation: nx-wipe-up 0.3s cubic-bezier(0.4, 0.1, 0.2, 1) 0.82s both; }
+
+.nx__trace-p {
+  stroke: #c9ffe1;
+  stroke-width: 6;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: nx-trace 0.42s cubic-bezier(0.5, 0.1, 0.25, 1) calc(0.7s + var(--t) * 0.06s) both;
+}
+
+/* stage 4: energy sweep */
+.nx__sweep { animation: nx-sweep 0.42s cubic-bezier(0.45, 0.05, 0.3, 1) 1.1s both; opacity: 0; }
+.nx__ring-base {
+  fill: none;
+  stroke: rgba(25, 229, 124, 0.35);
+  stroke-width: 1.2;
+  opacity: 0;
+  animation: nx-ring-life 0.48s ease-out 1.08s both;
+}
+.nx__ring {
+  fill: none;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.34 1;
+  stroke-dashoffset: 0.34;
+  opacity: 0;
+  animation: nx-ring 0.48s cubic-bezier(0.4, 0.1, 0.3, 1) 1.08s both;
+}
+.nx__spark {
+  fill: #b9ffd9;
+  opacity: 0;
+  animation: nx-spark 0.55s ease-out calc(1.14s + var(--d)) both;
+}
+
+/* stage 5: wordmark letters fade / slide / scale in */
+.nx__ltr {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+  animation: nx-ltr 0.36s cubic-bezier(0.2, 0.7, 0.2, 1) calc(1.56s + var(--i) * 0.035s) both;
+}
+
+/* ── stage 6: loading line (loops) ─────────────────────── */
+.nx__slot {
+  width: 62%;
+  margin-top: calc(var(--nx-w) * 0.07);
+  animation: nx-slot-in 0.3s ease-out 1.9s both;
+}
+.nx__bar {
+  position: relative;
+  width: 100%;
+  height: clamp(3px, calc(var(--nx-w) * 0.0075), 5px);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--nx-soft);
+}
+.nx__bar-seg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(18, 184, 90, 0.2), #19e57c 55%, #b9ffd9);
+  box-shadow: 0 0 10px rgba(25, 229, 124, 0.6);
+  will-change: transform;
+  animation: nx-bar 1.3s cubic-bezier(0.55, 0.05, 0.3, 1) infinite;
+  transition: opacity 0.12s ease-out;
+}
+.nx__bar-done {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #12b85a, #3df08f);
+  box-shadow: 0 0 12px rgba(25, 229, 124, 0.7);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  opacity: 0;
+}
+
+/* ── stage 7: ready → the line completes, the logo pulses, the screen fades out ─ */
+.nx--leaving {
+  pointer-events: none;
+  animation: nx-out 0.38s ease-out 0.3s forwards;
+}
+.nx--leaving .nx__bar-seg { opacity: 0; animation-play-state: paused; }
+.nx--leaving .nx__bar-done { animation: nx-done 0.2s ease-out both; }
+.nx--leaving .nx__lock { animation: nx-pulse 0.42s cubic-bezier(0.3, 0.6, 0.3, 1) 0.1s both; }
+.nx--leaving .nx__halo { animation: nx-halo 0.5s ease-out 0.1s both; }
+.nx--leaving .nx__slot { animation: none; opacity: 1; }
+
+/* detached static copy used when the screen is unmounted mid-load */
+.nx--ghost,
+.nx--ghost * { animation: none !important; }
+.nx--ghost { pointer-events: none; animation: nx-out 0.4s ease-out forwards !important; }
+.nx--ghost .nx__bar-seg { width: 100%; transform: none; }
+
+/* continuing straight from a previous splash (e.g. login → dashboard): skip the intro */
+.nx--resume .nx-i { animation: none !important; }
+.nx--resume .nx__slot { opacity: 1; }
+
+.nx-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── keyframes ─────────────────────────────────────────── */
+@keyframes nx-ambient-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 0.8; transform: scale(1); } }
+@keyframes nx-flare {
+  0%   { opacity: 0; transform: scaleX(0.2); }
+  40%  { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.1); }
+}
+@keyframes nx-stroke-l {
+  0%   { opacity: 0; transform: translate(-46vw, -21vw) rotate(24deg); }
+  18%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-6vw, -2.6vw) rotate(24deg); }
+}
+@keyframes nx-stroke-r {
+  0%   { opacity: 0; transform: translate(46vw, -21vw) rotate(-24deg); }
+  18%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(6vw, -2.6vw) rotate(-24deg); }
+}
+@keyframes nx-merge {
+  0%   { opacity: 0; transform: scale(0.4); }
+  35%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+@keyframes nx-mark-settle {
+  from { transform: translateX(388px) scale(1.35); }
+  to   { transform: translateX(0) scale(1); }
+}
+@keyframes nx-glow {
+  0%, 100% { opacity: 0.4; transform: scale(0.94); }
+  50%      { opacity: 0.8; transform: scale(1.06); }
+}
+@keyframes nx-wipe-x    { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes nx-wipe-down { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes nx-wipe-up   { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes nx-trace {
+  0%   { stroke-dashoffset: 1; opacity: 1; }
+  65%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes nx-sweep {
+  0%   { opacity: 0; transform: translateX(0); }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(980px); }
+}
+@keyframes nx-ring-life {
+  0%   { opacity: 0; }
+  25%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes nx-ring {
+  0%   { opacity: 0; stroke-dashoffset: 0.34; }
+  15%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; stroke-dashoffset: -0.66; }
+}
+@keyframes nx-spark {
+  0%   { opacity: 0; transform: translate(0, 0); }
+  25%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)); }
+}
+@keyframes nx-ltr {
+  0%   { opacity: 0; transform: translateX(22px) scale(0.94); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes nx-slot-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nx-bar {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(263%); }
+}
+@keyframes nx-done {
+  0%   { opacity: 1; transform: scaleX(0); }
+  100% { opacity: 1; transform: scaleX(1); }
+}
+@keyframes nx-pulse {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.045); }
+  100% { transform: scale(1.02); }
+}
+@keyframes nx-halo { 0% { opacity: 0; } 45% { opacity: 1; } 100% { opacity: 0.55; } }
+@keyframes nx-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes nx-breathe { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+/* ── reduced motion: static lockup, gentle pulse on the line only ─ */
+@media (prefers-reduced-motion: reduce) {
+  .nx .nx-i,
+  .nx .nx__bar-done { animation: none !important; }
+  .nx__slot { opacity: 1; }
+  .nx__bar-seg { width: 100%; transform: none; animation: nx-breathe 1.8s ease-in-out infinite !important; }
+  .nx--leaving,
+  .nx--ghost { animation: nx-out 0.15s linear forwards !important; }
+  .nx--leaving .nx__lock,
+  .nx--leaving .nx__halo { animation: none !important; }
+}
